@@ -21,6 +21,10 @@ let package = Package(
             name: "UpinnSecretsiOS",
             dependencies: ["UpinnSecrets"],
             path: "./Sources/UpinnSecretsiOS",
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("include"),  // Asegurar que se encuentran los headers
+            ]
         ),
         .testTarget(
             name: "UpinnSecretsiOSTests",
