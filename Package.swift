@@ -13,17 +13,14 @@ let package = Package(
             targets: ["UpinnSecretsiOS"]),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .binaryTarget(
             name: "UpinnSecrets",
-            path: "./Sources/UpinnSecretsiOS/UpinnSecretsiOS.xcframework"
+            path: "Sources/UpinnSecretsiOS/lib/upinn_secretsFFI.xcframework"
         ),
         .target(
             name: "UpinnSecretsiOS",
             dependencies: ["UpinnSecrets"],
             path: "./Sources/UpinnSecretsiOS",
-            publicHeadersPath: ""
         ),
         .testTarget(
             name: "UpinnSecretsiOSTests",

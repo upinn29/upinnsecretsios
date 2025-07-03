@@ -1,0 +1,4 @@
+module upinn_secretsFFI {
+  header "upinn_secrets.h"
+  export *
+}
