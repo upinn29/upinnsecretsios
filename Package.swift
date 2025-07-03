@@ -21,15 +21,13 @@ let package = Package(
             name: "UpinnSecretsiOS",
             dependencies: ["UpinnSecrets"],
             path: "./Sources/UpinnSecretsiOS",
-            sources: ["UpinnSecretsiOS.swift","secrets.swift"],
+            sources: ["UpinnSecretsiOS.swift"],
             publicHeadersPath: "include",
             cSettings: [
                 .headerSearchPath("include"),
                 .define("IMPORT_DARWIN_MODULES", to: "1") // Importante para módulos Darwin
             ],
-            linkerSettings: [
-                .linkedLibrary("upinn_secretsFFI") // Asegura el enlace con la librería
-            ]
+            
         ),
         .testTarget(
             name: "UpinnSecretsiOSTests",

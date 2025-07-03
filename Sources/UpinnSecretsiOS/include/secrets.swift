@@ -11,6 +11,7 @@ import Foundation
 import secretsFFI
 #endif
 
+
 fileprivate extension RustBuffer {
     // Allocate a new buffer, copying the contents of a `UInt8` array.
     init(bytes: [UInt8]) {
