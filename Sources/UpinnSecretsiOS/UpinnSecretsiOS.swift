@@ -3,52 +3,41 @@
 import Foundation
 import UIKit
 
-class DeviceInfo{
-    var manufacturer: String {
-        return "Apple"
-    }
+struct DeviceInfoData {
+    let manufacturer: String
+    let model: String
+    let os: String
+    let osVersion: String
+    let sdkVersion: String
+    let deviceType: String
+    let language: String
+    let region: String
+    let packageName: String
+}
 
-    var model: String {
-        return UIDevice.current.model
-    }
-
-    var os: String {
-        return UIDevice.current.systemName
-    }
-
-    var osVersion: String {
-        return UIDevice.current.systemVersion
-    }
-
-    var sdkVersion: String {
-        // iOS no expone el SDK version directamente como número entero,
-        // se usa el mismo que systemVersion
-        return UIDevice.current.systemVersion
-    }
-
-    var deviceType: String {
-        // Esto no es 100% confiable, pero funciona en la mayoría de los casos
+@MainActor
+class DeviceInfoProvider {
+    static func collect() -> DeviceInfoData {
         let idiom = UIDevice.current.userInterfaceIdiom
-        switch idiom {
-            case .pad:
-                return "Tablet"
-            case .phone:
-                return "Smartphone"
-            default:
-                return "Unknown"
-        }
-    }
+        let deviceType: String = {
+            switch idiom {
+            case .pad: return "Tablet"
+            case .phone: return "Smartphone"
+            default: return "Unknown"
+            }
+        }()
 
-    var language: String {
-        return Locale.current.languageCode ?? "unknown"
-    }
-
-    var region: String {
-        return Locale.current.regionCode ?? "unknown"
-    }
-
-    var packageName: String {
-        return Bundle.main.bundleIdentifier ?? "unknown"
+        return DeviceInfoData(
+            manufacturer: "Apple",
+            model: UIDevice.current.model,
+            os: UIDevice.current.systemName,
+            osVersion: UIDevice.current.systemVersion,
+            sdkVersion: UIDevice.current.systemVersion,
+            deviceType: deviceType,
+            language: Locale.current.languageCode ?? "unknown",
+            region: Locale.current.regionCode ?? "unknown",
+            packageName: Bundle.main.bundleIdentifier ?? "unknown"
+        )
     }
 }
 
@@ -59,7 +48,7 @@ open class UpinnSecretsIOS{
     private let fileName: String
     private let context: UIViewController?
     private let secrets: Secrets
-    private let deviceInfo: DeviceInfo = DeviceInfo()
+    private let deviceInfo: DeviceInfoData
     private var fileBytesGlobal: [UInt8] = []
     private var fileNameGlobal: String = ""
 
@@ -67,13 +56,13 @@ open class UpinnSecretsIOS{
     private static let TAG = "UpinnSecrets"
 
     // MARK: - Inicializador
-    init(isDebug: Bool, fileName: String) {
+    public init(isDebug: Bool, fileName: String) {
         self.isDebug = isDebug
         self.fileName = fileName
 
         let dbPath = UpinnSecretsIOS.getDatabasePath(fileName: "secrets.db")
-        self.secrets = Secrets(isDebug: isDebug, dbPath: dbPath)
-        self.deviceInfo = DeviceInfo()
+        self.secrets = Secrets(isDebug: isDebug, dbPath: dbPath,deviceInfo: DeviceInfoData)
+        self.deviceInfo = deviceInfo
 
         if isDebug {
             print("[\(Self.TAG)] Call init")
@@ -121,7 +110,7 @@ open class UpinnSecretsIOS{
     }
 
     // MARK: - Función para obtener secreto
-    func getSecret(variable: String, version: String?) throws -> SecretsResponse {
+    public func getSecret(variable: String, version: String?) throws -> SecretsResponse {
         do {
             if fileBytesGlobal.isEmpty {
                 throw PluginException.errorCode(1010)
