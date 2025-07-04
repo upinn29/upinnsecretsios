@@ -1,4 +1,4 @@
-name: Swift Package CI
+name: Build UpinnSecretsiOSLib
 
 on:
   push:
@@ -11,23 +11,20 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - name: Checkout código
+    - name: Checkout repo
       uses: actions/checkout@v4
 
-    - name: Instalar Rust (necesario para UniFFI)
+    - name: Instalar Rust (para UniFFI)
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         override: true
 
-    - name: Instalar dependencies Swift
-      run: |
-        swift --version
+    - name: Verificar Swift
+      run: swift --version
 
     - name: Build Swift Package
-      run: |
-        swift build --build-tests
+      run: swift build
 
-    - name: Run Tests
-      run: |
-        swift test
+    - name: Run Swift Tests
+      run: swift test
