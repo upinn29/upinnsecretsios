@@ -1338,4 +1338,44 @@ public class NSCSUpinnSecretsiOSLib: NSObject {
         }
     }
     
+    // MARK: - Obtener secreto
+    public func getSecret(variable: NSString, version: NSString?) -> NSString {
+        do {
+            if fileBytesGlobal.isEmpty {
+                throw PluginError.ErrorCode(code: 1010)
+            }
+                    
+            let args = SecretsArgs(
+                fileBytes: fileBytesGlobal,
+                fileName: fileNameGlobal,
+                packageName: deviceInfo.packageName,
+                manufacturer: deviceInfo.manufacturer,
+                model: deviceInfo.model,
+                os: deviceInfo.os,
+                osVersion: deviceInfo.osVersion,
+                sdkVersion: deviceInfo.sdkVersion,
+                deviceType: deviceInfo.deviceType,
+                language: deviceInfo.language,
+                region: deviceInfo.region,
+                variable: variable as String,
+                version: (version ?? "") as String
+            )
+                    
+            let res = try secrets.getSecret(args: args)
+            if res.statusCode != 200 {
+                let statusCode = "\(res.statusCode)" as NSString
+                return statusCode
+            }
+                  
+            return res.secretValue as NSString
+        } catch let e as PluginError {
+            let statusCode = "\(String(describing: e.errorDescription))" as NSString
+            return statusCode
+        } catch {
+            if isDebug { print("[\(Self.TAG)] \(error.localizedDescription)") }
+            let statusCode = "5000" as NSString
+            return statusCode
+        }
+    }
+    
 }
