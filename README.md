@@ -5,7 +5,7 @@
 [![Release](https://img.shields.io/github/v/tag/upinn29/upinnsecretsios?label=version)](https://github.com/upinn29/upinnsecretsios/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/upinn29/upinnsecretsios/swift.yml)](https://github.com/upinn29/upinnsecretsios/actions)
 
-iOS SPM for consuming protected secrets from the [Upinn](https://upinn.tech). It offers secure on-device authentication and retrieval of encrypted secrets from your backend using a native Rust-based integration.
+iOS SPM for consuming protected secrets from the [Upinn](https://upinn.tech). It offers secure on-device authentication and retrieval of encrypted secrets.
 
 ## 🛠 Installation
 
