@@ -1130,9 +1130,7 @@ class DeviceInfo{
     }
 }
 
-@objcMembers
-@objc(UpinnSecretsiOSLib)
-public class UpinnSecretsiOSLib:NSObject {
+public class UpinnSecretsiOSLib {
     // MARK: - Propiedades privadas
     private let isDebug: Bool
     private let fileName: String
@@ -1175,7 +1173,6 @@ public class UpinnSecretsiOSLib:NSObject {
             return nil
         }
     }
-    
     
     // MARK: - Función de login
     public func login() throws -> Int64 {
@@ -1256,4 +1253,89 @@ public class UpinnSecretsiOSLib:NSObject {
             throw PluginError.ErrorCode(code: 5000)
         }
     }
+}
+
+//FOR NATIVESCRIPT
+@objcMembers
+@objc(NSCSUpinnSecretsiOSLib)
+public class NSCSUpinnSecretsiOSLib: NSObject {
+    // MARK: - Propiedades privadas
+    private let isDebug: Bool
+    private let fileName: String
+    private let secrets: Secrets
+    private let deviceInfo = DeviceInfo()
+    private var fileBytesGlobal: [UInt8] = []
+    private var fileNameGlobal: String = ""
+    
+    // MARK: - Constantes
+    private static let TAG = "UpinnSecrets"
+    
+    // MARK: - Inicializador
+    public init(isDebug: Bool, fileName: String) throws {
+        self.isDebug = isDebug
+        self.fileName = fileName
+        let dbPath = NSCSUpinnSecretsiOSLib.getDatabasePath(fileName: "secrets.db")
+        self.secrets = try Secrets(isDebug: isDebug, dbPath: dbPath)
+        if isDebug {
+            print("[\(Self.TAG)] Call init")
+        }
+    }
+    
+    // MARK: - Ruta del archivo de base de datos
+    private static func getDatabasePath(fileName: String) -> String {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return dir.appendingPathComponent(fileName).path
+    }
+    
+    // MARK: - Leer archivo desde bundle
+    private func readFileFromBundle(fileName: String) -> [UInt8]? {
+        guard let url = Bundle.main.url(forResource: fileName, withExtension: "bin") else {
+            if isDebug { print("[\(Self.TAG)] Error file \(fileName) not found in bundle") }
+            return nil
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            return [UInt8](data)
+        } catch {
+            if isDebug { print("[\(Self.TAG)] Failed reading file: \(error)") }
+            return nil
+        }
+    }
+    
+    // MARK: - Función de login NATIVESCRIPT
+    public func login() -> NSNumber {
+        do {
+            
+            fileNameGlobal = fileName.replacingOccurrences(of: ".bin", with: "")
+            guard let fileBytes = readFileFromBundle(fileName: fileNameGlobal) else {
+                throw PluginError.ErrorCode(code: 1010)
+            }
+            fileBytesGlobal = fileBytes
+            let args = SecretsArgs(
+                fileBytes: fileBytesGlobal,
+                fileName: fileNameGlobal,
+                packageName: deviceInfo.packageName,
+                manufacturer: deviceInfo.manufacturer,
+                model: deviceInfo.model,
+                os: deviceInfo.os,
+                osVersion: deviceInfo.osVersion,
+                sdkVersion: deviceInfo.sdkVersion,
+                deviceType: deviceInfo.deviceType,
+                language: deviceInfo.language,
+                region: deviceInfo.region,
+                variable: "",
+                version: ""
+            )
+            let statusCode = try secrets.login(args: args)
+            
+            return NSNumber(value: statusCode.statusCode)
+        } catch let err as PluginError {
+            // Devuelve el código de error como NSNumber
+            return NSNumber(value: err.hashValue)
+        } catch {
+            // Error inesperado
+            return NSNumber(value: 5000)
+        }
+    }
+    
 }
