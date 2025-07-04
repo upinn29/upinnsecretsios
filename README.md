@@ -1,9 +1,9 @@
-# 📦 upinnsecretsios
-
-![Swift](https://img.shields.io/badge/Swift-6.1+-orange)
-![Platform](https://img.shields.io/badge/Platform-iOS-blue)
-![License](https://img.shields.io/github/license/upinn29/UpinnSecretsiOS)
-![Stars](https://img.shields.io/github/stars/upinn29/UpinnSecretsiOS?style=social)
+[![Swift](https://img.shields.io/badge/Swift-6.1+-orange)](https://swift.org)
+[![Platform](https://img.shields.io/badge/Platform-iOS%20-blue)]()
+[![License](https://img.shields.io/github/license/upinn29/upinnsecretsios)](https://github.com/upinn29/upinnsecretsios/blob/main/LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/upinn29/upinnsecretsios?style=social)](https://github.com/upinn29/upinnsecretsios/stargazers)
+[![Release](https://img.shields.io/github/v/tag/upinn29/upinnsecretsios?label=version)](https://github.com/upinn29/upinnsecretsios/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/upinn29/upinnsecretsios/swift.yml)](https://github.com/upinn29/upinnsecretsios/actions)
 
 iOS SPM for consuming protected secrets from the [Upinn](https://upinn.tech). It offers secure on-device authentication and retrieval of encrypted secrets from your backend using a native Rust-based integration.
 
