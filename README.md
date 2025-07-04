@@ -1,5 +1,10 @@
 # 📦 upinnsecretsios
 
+![Swift](https://img.shields.io/badge/Swift-6.1+-orange)
+![Platform](https://img.shields.io/badge/Platform-iOS-blue)
+![License](https://img.shields.io/github/license/upinn29/UpinnSecretsiOS)
+![Stars](https://img.shields.io/github/stars/upinn29/UpinnSecretsiOS?style=social)
+
 iOS SPM for consuming protected secrets from the [Upinn](https://upinn.tech). It offers secure on-device authentication and retrieval of encrypted secrets from your backend using a native Rust-based integration.
 
 ## 🛠 Installation
