@@ -1082,62 +1082,52 @@ public func uniffiEnsureUpinnSecretsInitialized() {
 
 // swiftlint:enable all
 
+import Deviice
+
 class DeviceInfo{
+    let device = Device.init()
+    
     var manufacturer: String {
-            return "Apple"
-        }
+        return "Apple"
+    }
 
-        var model: String {
-            return DispatchQueue.main.sync {
-                UIDevice.current.model
-            }
-        }
+    var model: String {
+        return self.device.family.rawValue
+    }
 
-        var os: String {
-            return DispatchQueue.main.sync {
-                UIDevice.current.systemName
-            }
-        }
+    var os: String {
+        return self.device.osName
+    }
 
-        var osVersion: String {
-            return DispatchQueue.main.sync {
-                UIDevice.current.systemVersion
-            }
-        }
+    var osVersion: String {
+        return self.device.osVersion ?? "Unknown"
+    }
 
-        var sdkVersion: String {
-            return DispatchQueue.main.sync {
-                UIDevice.current.systemVersion
-            }
-        }
+    var sdkVersion: String {
+        return self.device.osVersion ?? "Unknown"
+    }
 
-        var deviceType: String {
-            return DispatchQueue.main.sync {
-                switch UIDevice.current.userInterfaceIdiom {
-                    case .pad: return "Tablet"
-                    case .phone: return "Smartphone"
-                    default: return "Unknown"
-                }
-            }
+    var deviceType: String {
+        if (self.device.isPad){
+            return "Tablet"
+        }else if(self.device.isPhone){
+            return "Smartphone"
+        }else {
+            return "Unknown"
         }
+    }
 
-        var language: String {
-            return DispatchQueue.main.sync {
-                Locale.current.language.languageCode?.identifier ?? "unknown"
-            }
-        }
+    var language: String {
+        Locale.current.language.languageCode?.identifier ?? "unknown"
+    }
 
-        var region: String {
-            return DispatchQueue.main.sync {
-                Locale.current.region?.identifier ?? "unknown"
-            }
-        }
-
-        var packageName: String {
-            return DispatchQueue.main.sync {
-                Bundle.main.bundleIdentifier ?? "unknown"
-            }
-        }
+    var region: String {
+        Locale.current.region?.identifier ?? "unknown"
+    }
+    
+    var packageName: String {
+        Bundle.main.bundleIdentifier ?? "unknown"
+    }
 }
 
 public class UpinnSecretsiOSLib {

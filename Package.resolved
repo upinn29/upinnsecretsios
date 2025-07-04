@@ -1,0 +1,15 @@
+{
+  "originHash" : "28371d9349d91824b697d9d3a5d3b4ca4a60b16f1cb8b7e941e824a755be9090",
+  "pins" : [
+    {
+      "identity" : "deviice",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/andrealufino/Deviice.git",
+      "state" : {
+        "revision" : "64f7c5a1d417595e49f9049590ce1f0abeb610a8",
+        "version" : "2.1.5"
+      }
+    }
+  ],
+  "version" : 3
+}

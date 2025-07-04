@@ -14,6 +14,13 @@ let package = Package(
             name: "UpinnSecretsiOSLib",
             targets: ["UpinnSecretsiOSLib"]),
     ],
+    dependencies: [
+        // Agrega Deviice como dependencia
+        .package(
+            url: "https://github.com/andrealufino/Deviice.git",
+            from: "2.1.5"  // Revisa la última versión en GitHub
+        ),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
@@ -21,9 +28,14 @@ let package = Package(
             name: "secretsFFI",
             path: "Sources/UpinnSecretsiOSLib/upinn_secretsFFI.xcframework"
         ),
+        
         .target(
             name: "UpinnSecretsiOSLib",
-            dependencies: ["secretsFFI"],
+            dependencies: [
+                "secretsFFI",
+                .product(name: "Deviice", package: "Deviice"),
+                
+            ],
             path: "Sources/UpinnSecretsiOSLib",
             sources: ["UpinnSecretsiOSLib.swift"],
             publicHeadersPath: "include",
