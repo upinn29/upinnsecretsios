@@ -1,0 +1,33 @@
+name: Swift Package CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Instalar Rust (necesario para UniFFI)
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Instalar dependencies Swift
+      run: |
+        swift --version
+
+    - name: Build Swift Package
+      run: |
+        swift build --build-tests
+
+    - name: Run Tests
+      run: |
+        swift test
