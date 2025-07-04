@@ -1081,59 +1081,65 @@ public func uniffiEnsureUpinnSecretsInitialized() {
 }
 
 // swiftlint:enable all
-@MainActor
+
 class DeviceInfo{
-    // MARK: - Fabricante
     var manufacturer: String {
-        return "Apple"
-    }
-    
-    // MARK: - Modelo del dispositivo
-    var model: String {
-        return UIDevice.current.model
-    }
-
-    // MARK: - Sistema operativo
-    var os: String {
-        return UIDevice.current.systemName // "iOS"
-    }
-
-    // MARK: - Versión del sistema operativo
-    var osVersion: String {
-        return UIDevice.current.systemVersion
-    }
-
-    // MARK: - SDK version (se usa el mismo systemVersion como string)
-    var sdkVersion: String {
-        return UIDevice.current.systemVersion
-    }
-
-    // MARK: - Tipo de dispositivo
-    var deviceType: String {
-        switch UIDevice.current.userInterfaceIdiom {
-        	case .pad: return "Tablet"
-            case .phone: return "Smartphone"
-            default: return "Unknown"
+            return "Apple"
         }
-    }
 
-    // MARK: - Idioma
-    var language: String {
-        return Locale.current.language.languageCode?.identifier ?? "unknown"
-    }
+        var model: String {
+            return DispatchQueue.main.sync {
+                UIDevice.current.model
+            }
+        }
 
-    // MARK: - Región
-    var region: String {
-        return Locale.current.region?.identifier ?? "unknown"
-    }
+        var os: String {
+            return DispatchQueue.main.sync {
+                UIDevice.current.systemName
+            }
+        }
 
-    // MARK: - Identificador del paquete (Bundle ID)
-    var packageName: String {
-        return Bundle.main.bundleIdentifier ?? "unknown"
-    }
+        var osVersion: String {
+            return DispatchQueue.main.sync {
+                UIDevice.current.systemVersion
+            }
+        }
+
+        var sdkVersion: String {
+            return DispatchQueue.main.sync {
+                UIDevice.current.systemVersion
+            }
+        }
+
+        var deviceType: String {
+            return DispatchQueue.main.sync {
+                switch UIDevice.current.userInterfaceIdiom {
+                    case .pad: return "Tablet"
+                    case .phone: return "Smartphone"
+                    default: return "Unknown"
+                }
+            }
+        }
+
+        var language: String {
+            return DispatchQueue.main.sync {
+                Locale.current.language.languageCode?.identifier ?? "unknown"
+            }
+        }
+
+        var region: String {
+            return DispatchQueue.main.sync {
+                Locale.current.region?.identifier ?? "unknown"
+            }
+        }
+
+        var packageName: String {
+            return DispatchQueue.main.sync {
+                Bundle.main.bundleIdentifier ?? "unknown"
+            }
+        }
 }
 
-@MainActor
 public class UpinnSecretsiOSLib {
     // MARK: - Propiedades privadas
     private let isDebug: Bool
