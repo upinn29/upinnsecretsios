@@ -1130,7 +1130,9 @@ class DeviceInfo{
     }
 }
 
-public class UpinnSecretsiOSLib {
+@objcMembers
+@objc(UpinnSecretsiOSLib)
+public class UpinnSecretsiOSLib:NSObject {
     // MARK: - Propiedades privadas
     private let isDebug: Bool
     private let fileName: String
