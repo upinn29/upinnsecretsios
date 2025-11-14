@@ -268,7 +268,7 @@ void*_Nonnull uniffi_upinn_secrets_fn_constructor_secrets_new(int8_t is_debug, R
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_UPINN_SECRETS_FN_METHOD_SECRETS_GET_SECRET
 #define UNIFFI_FFIDEF_UNIFFI_UPINN_SECRETS_FN_METHOD_SECRETS_GET_SECRET
-RustBuffer uniffi_upinn_secrets_fn_method_secrets_get_secret(void*_Nonnull ptr, RustBuffer args, RustCallStatus *_Nonnull out_status
+uint64_t uniffi_upinn_secrets_fn_method_secrets_get_secret(void*_Nonnull ptr, RustBuffer args
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_UPINN_SECRETS_FN_METHOD_SECRETS_LOGIN

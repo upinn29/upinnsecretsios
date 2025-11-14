@@ -499,7 +499,7 @@ fileprivate struct FfiConverterString: FfiConverter {
 
 public protocol SecretsProtocol: AnyObject, Sendable {
     
-    func getSecret(args: SecretsArgs) throws  -> SecretsResponse
+    func getSecret(args: SecretsArgs) async throws  -> SecretsResponse
     
     func login(args: SecretsArgs) throws  -> SecretsError
     
@@ -565,12 +565,21 @@ public convenience init(isDebug: Bool, dbPath: String)throws  {
     
 
     
-open func getSecret(args: SecretsArgs)throws  -> SecretsResponse  {
-    return try  FfiConverterTypeSecretsResponse_lift(try rustCallWithError(FfiConverterTypePluginError_lift) {
-    uniffi_upinn_secrets_fn_method_secrets_get_secret(self.uniffiClonePointer(),
-        FfiConverterTypeSecretsArgs_lower(args),$0
-    )
-})
+open func getSecret(args: SecretsArgs)async throws  -> SecretsResponse  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_upinn_secrets_fn_method_secrets_get_secret(
+                    self.uniffiClonePointer(),
+                    FfiConverterTypeSecretsArgs_lower(args)
+                )
+            },
+            pollFunc: ffi_upinn_secrets_rust_future_poll_rust_buffer,
+            completeFunc: ffi_upinn_secrets_rust_future_complete_rust_buffer,
+            freeFunc: ffi_upinn_secrets_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterTypeSecretsResponse_lift,
+            errorHandler: FfiConverterTypePluginError_lift
+        )
 }
     
 open func login(args: SecretsArgs)throws  -> SecretsError  {
@@ -1034,6 +1043,52 @@ fileprivate struct FfiConverterSequenceUInt8: FfiConverterRustBuffer {
         return seq
     }
 }
+private let UNIFFI_RUST_FUTURE_POLL_READY: Int8 = 0
+private let UNIFFI_RUST_FUTURE_POLL_MAYBE_READY: Int8 = 1
+
+fileprivate let uniffiContinuationHandleMap = UniffiHandleMap<UnsafeContinuation<Int8, Never>>()
+
+fileprivate func uniffiRustCallAsync<F, T>(
+    rustFutureFunc: () -> UInt64,
+    pollFunc: (UInt64, @escaping UniffiRustFutureContinuationCallback, UInt64) -> (),
+    completeFunc: (UInt64, UnsafeMutablePointer<RustCallStatus>) -> F,
+    freeFunc: (UInt64) -> (),
+    liftFunc: (F) throws -> T,
+    errorHandler: ((RustBuffer) throws -> Swift.Error)?
+) async throws -> T {
+    // Make sure to call the ensure init function since future creation doesn't have a
+    // RustCallStatus param, so doesn't use makeRustCall()
+    uniffiEnsureUpinnSecretsInitialized()
+    let rustFuture = rustFutureFunc()
+    defer {
+        freeFunc(rustFuture)
+    }
+    var pollResult: Int8;
+    repeat {
+        pollResult = await withUnsafeContinuation {
+            pollFunc(
+                rustFuture,
+                uniffiFutureContinuationCallback,
+                uniffiContinuationHandleMap.insert(obj: $0)
+            )
+        }
+    } while pollResult != UNIFFI_RUST_FUTURE_POLL_READY
+
+    return try liftFunc(makeRustCall(
+        { completeFunc(rustFuture, $0) },
+        errorHandler: errorHandler
+    ))
+}
+
+// Callback handlers for an async calls.  These are invoked by Rust when the future is ready.  They
+// lift the return value or error and resume the suspended function.
+fileprivate func uniffiFutureContinuationCallback(handle: UInt64, pollResult: Int8) {
+    if let continuation = try? uniffiContinuationHandleMap.remove(handle: handle) {
+        continuation.resume(returning: pollResult)
+    } else {
+        print("uniffiFutureContinuationCallback invalid handle")
+    }
+}
 
 private enum InitializationResult {
     case ok
@@ -1050,7 +1105,7 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_upinn_secrets_checksum_method_secrets_get_secret() != 39398) {
+    if (uniffi_upinn_secrets_checksum_method_secrets_get_secret() != 14146) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_upinn_secrets_checksum_method_secrets_login() != 54760) {
