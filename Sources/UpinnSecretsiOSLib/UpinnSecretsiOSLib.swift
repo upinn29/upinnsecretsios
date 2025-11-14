@@ -1133,3 +1133,300 @@ public func uniffiEnsureUpinnSecretsInitialized() {
 }
 
 // swiftlint:enable all
+import Deviice
+
+class DeviceInfo{
+    let device = Device.init()
+    
+    var manufacturer: String {
+        return "Apple"
+    }
+
+    var model: String {
+        return self.device.family.rawValue
+    }
+
+    var os: String {
+        return self.device.osName
+    }
+
+    var osVersion: String {
+        return self.device.osVersion ?? "Unknown"
+    }
+
+    var sdkVersion: String {
+        return self.device.osVersion ?? "Unknown"
+    }
+
+    var deviceType: String {
+        if (self.device.isPad){
+            return "Tablet"
+        }else if(self.device.isPhone){
+            return "Smartphone"
+        }else {
+            return "Unknown"
+        }
+    }
+
+    var language: String {
+        Locale.current.language.languageCode?.identifier ?? "unknown"
+    }
+
+    var region: String {
+        Locale.current.region?.identifier ?? "unknown"
+    }
+    
+    var packageName: String {
+        Bundle.main.bundleIdentifier ?? "unknown"
+    }
+}
+
+public class UpinnSecretsiOSLib {
+    // MARK: - Propiedades privadas
+    private let isDebug: Bool
+    private let fileName: String
+    private let secrets: Secrets
+    private let deviceInfo = DeviceInfo()
+    private var fileBytesGlobal: [UInt8] = []
+    private var fileNameGlobal: String = ""
+    
+    // MARK: - Constantes
+    private static let TAG = "UpinnSecrets"
+    
+    // MARK: - Inicializador
+    public init(isDebug: Bool, fileName: String) throws {
+        self.isDebug = isDebug
+        self.fileName = fileName
+        let dbPath = UpinnSecretsiOSLib.getDatabasePath(fileName: "secrets.db")
+        self.secrets = try Secrets(isDebug: isDebug, dbPath: dbPath)
+        if isDebug {
+            print("[\(Self.TAG)] Call init")
+        }
+    }
+    
+    // MARK: - Ruta del archivo de base de datos
+    private static func getDatabasePath(fileName: String) -> String {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return dir.appendingPathComponent(fileName).path
+    }
+    
+    // MARK: - Leer archivo desde bundle
+    private func readFileFromBundle(fileName: String) -> [UInt8]? {
+        guard let url = Bundle.main.url(forResource: fileName, withExtension: "bin") else {
+            if isDebug { print("[\(Self.TAG)] Error file \(fileName) not found in bundle") }
+            return nil
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            return [UInt8](data)
+        } catch {
+            if isDebug { print("[\(Self.TAG)] Failed reading file: \(error)") }
+            return nil
+        }
+    }
+    
+    // MARK: - Función de login
+    public func login() throws -> Int64 {
+        do {
+            fileNameGlobal = fileName.replacingOccurrences(of: ".bin", with: "")
+            guard let fileBytes = readFileFromBundle(fileName: fileNameGlobal) else {
+                throw PluginError.ErrorCode(code: 1010)
+            }
+            fileBytesGlobal = fileBytes
+            let args = SecretsArgs(
+                fileBytes: fileBytesGlobal,
+                fileName: fileNameGlobal,
+                packageName: deviceInfo.packageName,
+                manufacturer: deviceInfo.manufacturer,
+                model: deviceInfo.model,
+                os: deviceInfo.os,
+                osVersion: deviceInfo.osVersion,
+                sdkVersion: deviceInfo.sdkVersion,
+                deviceType: deviceInfo.deviceType,
+                language: deviceInfo.language,
+                region: deviceInfo.region,
+                variable: "",
+                version: ""
+            )
+            
+            let resLogin = try secrets.login(args: args)
+            
+            if resLogin.statusCode != 200 {
+                throw PluginError.ErrorCode(code: resLogin.statusCode)
+                
+            }
+            
+            return resLogin.statusCode
+        } catch let e as PluginError {
+            throw e
+        }catch {
+            if isDebug { print("[\(Self.TAG)] \(error.localizedDescription)") }
+            throw PluginError.ErrorCode(code: 5000)
+        }
+    }
+    
+    // MARK: - Obtener secreto
+    public func getSecret(variable: String, version: String?) async throws -> SecretsResponse {
+        do {
+            if fileBytesGlobal.isEmpty {
+                throw PluginError.ErrorCode(code: 1010)
+            }
+                    
+            let args = SecretsArgs(
+                fileBytes: fileBytesGlobal,
+                fileName: fileNameGlobal,
+                packageName: deviceInfo.packageName,
+                manufacturer: deviceInfo.manufacturer,
+                model: deviceInfo.model,
+                os: deviceInfo.os,
+                osVersion: deviceInfo.osVersion,
+                sdkVersion: deviceInfo.sdkVersion,
+                deviceType: deviceInfo.deviceType,
+                language: deviceInfo.language,
+                region: deviceInfo.region,
+                variable: variable,
+                version: version ?? ""
+            )
+                    
+            let res = try await secrets.getSecret(args: args)
+            if res.statusCode != 200 {
+                throw PluginError.ErrorCode(code: res.statusCode)
+            }
+                    
+            return SecretsResponse(
+                secretValue: res.secretValue,
+                statusCode: res.statusCode
+            )
+        } catch let e as PluginError {
+            throw e
+        } catch {
+            if isDebug { print("[\(Self.TAG)] \(error.localizedDescription)") }
+            throw PluginError.ErrorCode(code: 5000)
+        }
+    }
+}
+
+//FOR NATIVESCRIPT
+@objcMembers
+@objc(NSCSUpinnSecretsiOSLib)
+public class NSCSUpinnSecretsiOSLib: NSObject {
+    // MARK: - Propiedades privadas
+    private let isDebug: Bool
+    private let fileName: String
+    private let secrets: Secrets
+    private let deviceInfo = DeviceInfo()
+    private var fileBytesGlobal: [UInt8] = []
+    private var fileNameGlobal: String = ""
+    
+    // MARK: - Constantes
+    private static let TAG = "UpinnSecrets"
+    
+    // MARK: - Inicializador
+    public init(isDebug: Bool, fileName: String) throws {
+        self.isDebug = isDebug
+        self.fileName = fileName
+        let dbPath = NSCSUpinnSecretsiOSLib.getDatabasePath(fileName: "secrets.db")
+        self.secrets = try Secrets(isDebug: isDebug, dbPath: dbPath)
+        if isDebug {
+            print("[\(Self.TAG)] Call init")
+        }
+    }
+    
+    // MARK: - Ruta del archivo de base de datos
+    private static func getDatabasePath(fileName: String) -> String {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return dir.appendingPathComponent(fileName).path
+    }
+    
+    // MARK: - Leer archivo desde bundle
+    private func readFileFromBundle(fileName: String) -> [UInt8]? {
+        guard let url = Bundle.main.url(forResource: fileName, withExtension: "bin") else {
+            if isDebug { print("[\(Self.TAG)] Error file \(fileName) not found in bundle") }
+            return nil
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            return [UInt8](data)
+        } catch {
+            if isDebug { print("[\(Self.TAG)] Failed reading file: \(error)") }
+            return nil
+        }
+    }
+    
+    // MARK: - Función de login NATIVESCRIPT
+    public func login() -> NSNumber {
+        do {
+            
+            fileNameGlobal = fileName.replacingOccurrences(of: ".bin", with: "")
+            guard let fileBytes = readFileFromBundle(fileName: fileNameGlobal) else {
+                throw PluginError.ErrorCode(code: 1010)
+            }
+            fileBytesGlobal = fileBytes
+            let args = SecretsArgs(
+                fileBytes: fileBytesGlobal,
+                fileName: fileNameGlobal,
+                packageName: deviceInfo.packageName,
+                manufacturer: deviceInfo.manufacturer,
+                model: deviceInfo.model,
+                os: deviceInfo.os,
+                osVersion: deviceInfo.osVersion,
+                sdkVersion: deviceInfo.sdkVersion,
+                deviceType: deviceInfo.deviceType,
+                language: deviceInfo.language,
+                region: deviceInfo.region,
+                variable: "",
+                version: ""
+            )
+            let statusCode = try secrets.login(args: args)
+            
+            return NSNumber(value: statusCode.statusCode)
+        } catch let err as PluginError {
+            // Devuelve el código de error como NSNumber
+            return NSNumber(value: err.hashValue)
+        } catch {
+            // Error inesperado
+            return NSNumber(value: 5000)
+        }
+    }
+    
+    // MARK: - Obtener secreto
+    public func getSecret(variable: NSString, version: NSString?) async -> NSString {
+        do {
+            if fileBytesGlobal.isEmpty {
+                throw PluginError.ErrorCode(code: 1010)
+            }
+                    
+            let args = SecretsArgs(
+                fileBytes: fileBytesGlobal,
+                fileName: fileNameGlobal,
+                packageName: deviceInfo.packageName,
+                manufacturer: deviceInfo.manufacturer,
+                model: deviceInfo.model,
+                os: deviceInfo.os,
+                osVersion: deviceInfo.osVersion,
+                sdkVersion: deviceInfo.sdkVersion,
+                deviceType: deviceInfo.deviceType,
+                language: deviceInfo.language,
+                region: deviceInfo.region,
+                variable: variable as String,
+                version: (version ?? "") as String
+            )
+                    
+            let res = try await secrets.getSecret(args: args)
+            if res.statusCode != 200 {
+                let statusCode = "\(res.statusCode)" as NSString
+                return statusCode
+            }
+                  
+            return res.secretValue as NSString
+        } catch let e as PluginError {
+            let statusCode = "\(String(describing: e.errorDescription))" as NSString
+            return statusCode
+        } catch {
+            if isDebug { print("[\(Self.TAG)] \(error.localizedDescription)") }
+            let statusCode = "5000" as NSString
+            return statusCode
+        }
+    }
+    
+}
