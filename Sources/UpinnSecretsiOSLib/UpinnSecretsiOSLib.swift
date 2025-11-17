@@ -1390,12 +1390,12 @@ public class NSCSUpinnSecretsiOSLib: NSObject {
     }
     
     // MARK: - Obtener secreto
-    public func getSecret(variable: NSString, version: NSString?) async -> NSString {
+    public func getSecret(variable:NSString, version:NSString?) async -> NSString {
         do {
             if fileBytesGlobal.isEmpty {
                 throw PluginError.ErrorCode(code: 1010)
             }
-                    
+            
             let args = SecretsArgs(
                 fileBytes: fileBytesGlobal,
                 fileName: fileNameGlobal,
@@ -1411,13 +1411,14 @@ public class NSCSUpinnSecretsiOSLib: NSObject {
                 variable: variable as String,
                 version: (version ?? "") as String
             )
-                    
+            
+            
             let res = try await secrets.getSecret(args: args)
             if res.statusCode != 200 {
                 let statusCode = "\(res.statusCode)" as NSString
                 return statusCode
             }
-                  
+            
             return res.secretValue as NSString
         } catch let e as PluginError {
             let statusCode = "\(String(describing: e.errorDescription))" as NSString
